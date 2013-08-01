@@ -3,17 +3,17 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
 
   before_filter :load_order, :only => [:result, :success, :fail]
 
-  def show
-    @order =  Spree::Order.find(params[:order_id])
-    @gateway = @order.available_payment_methods.find{|x| x.id == params[:gateway_id].to_i }
+  # def show
+  #   @order =  Spree::Order.find(params[:order_id])
+  #   @gateway = @order.available_payment_methods.find{|x| x.id == params[:gateway_id].to_i }
 
-    if @order.blank? || @gateway.blank?
-      flash[:error] = I18n.t('invalid_arguments')
-      redirect_to :back
-    else
-      @signature = Digest::MD5.hexdigest([ @gateway.options[:id], @order.id, format("%.2f", @order.total), @gateway.options[:currency_code], @gateway.mode, @gateway.options[:signature] ].join)
-    end
-  end
+  #   if @order.blank? || @gateway.blank?
+  #     flash[:error] = I18n.t('invalid_arguments')
+  #     redirect_to :back
+  #   else
+  #     @signature = Digest::MD5.hexdigest([ @gateway.options[:id], @order.id, format("%.2f", @order.total), @gateway.options[:currency_code], @gateway.mode, @gateway.options[:signature] ].join)
+  #   end
+  # end
 
   def result
     if complete_or_create_payment(@order, @gateway)
@@ -36,25 +36,25 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
 
   def fail
     flash[:error] = t('payment_fail')
-    redirect_to @order.blank? ? root_url : checkout_state_path('payment')
+    redirect_to @order.blank? ? root_url : checkout_state_url('payment')
   end
 
   protected
 
   def after_success_path(resource)
-    order_path(resource)
+    order_url(resource)
   end
 
   private
 
   def load_order
     @order = Spree::Order.find_by_id(params['MNT_TRANSACTION_ID'])
-    @gateway = @order.payment_method
+    @gateway = @order.payments.detect{|p| p.payment_method.kind_of? Spree::Gateway::Payanyway}.payment_method
   end
   
   def complete_or_create_payment(order, gateway)
     return unless order && gateway
-    unless (payment = order.payments.first) && payment.complete!
+    unless (payment = order.payments.last) && payment.complete!
       order.payments.destroy_all
       order.payments.create! do |p|
         p.payment_method = gateway
@@ -69,4 +69,5 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
     @order.next! until @order.state == "complete"
     @order.update!
   end
+
 end

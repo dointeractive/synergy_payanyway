@@ -33,4 +33,29 @@ class Spree::Gateway::Payanyway < Spree::Gateway
     false
   end
 
+  def signature(order)
+    Digest::MD5.hexdigest([
+        options[:id],
+        order.id,
+        format("%.2f", order.total),
+        options[:currency_code],
+        mode,
+        options[:signature]
+      ].join)
+  end
+
+  def url_for_order(order)
+    params = []
+    params << "MNT_ID=#{options[:id]}"
+    params << "MNT_TRANSACTION_ID=#{order.id}"
+    params << "MNT_CURRENCY_CODE=#{options[:currency_code]}"
+    params << "MNT_AMOUNT=#{format("%.2f", order.total)}"
+    params << "MNT_TEST_MODE=#{mode}"
+    params << "MNT_SIGNATURE=#{signature(order)}"
+    params << "moneta.locale=#{options[:locale]}" if options[:locale].present?
+    params << "paymentSystem.unitId=#{options[:payment_system]}" if options[:payment_system].present?
+    params << "paymentSystem.limitIds=#{options[:payment_system_list]}" if options[:payment_system_list].present?
+    [url, params.join('&')].join('?')
+  end
+
 end
