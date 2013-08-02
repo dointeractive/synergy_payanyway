@@ -27,15 +27,15 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   def success
     if @order && @gateway && @order.complete?
       session[:order_id] = nil
-      redirect_to after_success_path(@order), :notice => I18n.t("order_processed_successfully")
+      redirect_to after_success_path(@order), :notice => Spree.t(:order_processed_successfully)
     else
-      flash[:error] = t("payment_fail")
+      flash[:error] = Spree.t(:payment_fail)
       redirect_to root_url
     end
   end
 
   def fail
-    flash[:error] = t('payment_fail')
+    flash[:error] = Spree.t(:payment_fail)
     redirect_to @order.blank? ? root_url : checkout_state_url('payment')
   end
 

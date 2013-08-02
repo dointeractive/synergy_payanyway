@@ -1,4 +1,4 @@
-Spree::Core::Engine.routes.draw do
+Spree::Core::Engine.routes.append do
   namespace :gateway do
     match '/payanyway/:gateway_id/:order_id' => 'payanyway#show',    :as => :payanyway
     match '/payanyway/result'                => 'payanyway#result',  :as => :payanyway_result
