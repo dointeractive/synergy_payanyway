@@ -49,7 +49,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
 
   def load_order
     @order = Spree::Order.find_by_id(params['MNT_TRANSACTION_ID'])
-    @gateway = @order.payments.detect{|p| p.payment_method.kind_of? Spree::Gateway::Payanyway}.payment_method
+    @gateway = @order.payments.detect{|p| p.payment_method.kind_of? Spree::Gateway::Payanyway}.payment_method if @order
   end
   
   def complete_or_create_payment(order, gateway)
