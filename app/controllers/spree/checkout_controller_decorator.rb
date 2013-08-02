@@ -9,7 +9,7 @@ Spree::CheckoutController.class_eval do
       if payment_method.kind_of? Spree::Gateway::Payanyway
         @order.update_attributes(object_params)
         @order.payments.last.started_processing!
-        redirect_to payment_method.url_for_order(@order) and return
+        redirect_to payment_method.url_for_order(@order, params) and return
       end
     end
 end

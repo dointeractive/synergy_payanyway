@@ -44,7 +44,7 @@ class Spree::Gateway::Payanyway < Spree::Gateway
       ].join)
   end
 
-  def url_for_order(order)
+  def url_for_order(order, opt = {})
     params = []
     params << "MNT_ID=#{options[:id]}"
     params << "MNT_TRANSACTION_ID=#{order.id}"
@@ -53,7 +53,7 @@ class Spree::Gateway::Payanyway < Spree::Gateway
     params << "MNT_TEST_MODE=#{mode}"
     params << "MNT_SIGNATURE=#{signature(order)}"
     params << "moneta.locale=#{options[:locale]}" if options[:locale].present?
-    params << "paymentSystem.unitId=#{options[:payment_system]}" if options[:payment_system].present?
+    params << "paymentSystem.unitId=#{opt[:payment_system].presence || options[:payment_system]}" if opt[:payment_system].present? || options[:payment_system].present?
     params << "paymentSystem.limitIds=#{options[:payment_system_list]}" if options[:payment_system_list].present?
     [options[:server], params.join('&')].join('?')
   end
