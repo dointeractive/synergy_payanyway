@@ -42,7 +42,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   protected
 
   def after_success_path(resource)
-    orders_history_url
+    account_orders_url
   end
 
   private
