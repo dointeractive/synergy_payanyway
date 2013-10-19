@@ -16,7 +16,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   # end
 
   def result
-    if @gateway.result_signature(@order, params) == params['MNT_SIGNATURE'] && complete_or_create_payment(@order, @gateway, params) && complete_order(@order)
+    if @order && @gateway.result_signature(@order, params) == params['MNT_SIGNATURE'] && complete_or_create_payment(@order, @gateway, params) && complete_order(@order)
       render :text => 'SUCCESS'
     else
       render :text => 'FAIL'
