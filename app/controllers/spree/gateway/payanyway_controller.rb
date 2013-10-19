@@ -53,15 +53,14 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   
   def complete_or_create_payment(order, gateway, api_params)
     return unless order && gateway
-    unless (payment = order.payments.detect{ |p| p.payment_method == @gateway }) && payment.complete!
-      order.payments.destroy_all
-      order.payments.create! do |p|
-        p.payment_method = gateway
-        p.amount = api_params['MNT_AMOUNT'].to_f
-        p.state = 'completed'
-      end
+    amount = api_params['MNT_AMOUNT'].to_f
+    payment = order.payments.detect{ |p| p.payment_method == @gateway && p.amount == amount }
+    return true if payment && payment.completed?
+    if !payment
+      order.payments.where(:state => ['checkout', 'pending', 'processing']).destroy_all
+      payment = order.payments.create({:payment_method_id => gateway.id, :amount => amount})
     end
-    order.update!
+    payment.complete && order.update!
   end
 
   def complete_order(order)
