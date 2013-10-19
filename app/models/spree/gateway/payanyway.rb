@@ -55,7 +55,6 @@ class Spree::Gateway::Payanyway < Spree::Gateway
     params << "moneta.locale=#{options[:locale]}" if options[:locale].present?
     params << "paymentSystem.unitId=#{opt[:payment_system].presence || options[:payment_system]}" if opt[:payment_system].present? || options[:payment_system].present?
     params << "paymentSystem.limitIds=#{options[:payment_system_list]}" if options[:payment_system_list].present?
-    params << "followup=true"
     [options[:server], params.join('&')].join('?')
   end
 
