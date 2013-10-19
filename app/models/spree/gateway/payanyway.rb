@@ -36,7 +36,7 @@ class Spree::Gateway::Payanyway < Spree::Gateway
   def signature(order)
     Digest::MD5.hexdigest([
         options[:id],
-        order.id,
+        order.number,
         format("%.2f", order.total),
         options[:currency_code],
         mode,
@@ -47,7 +47,7 @@ class Spree::Gateway::Payanyway < Spree::Gateway
   def url_for_order(order, opt = {})
     params = []
     params << "MNT_ID=#{options[:id]}"
-    params << "MNT_TRANSACTION_ID=#{order.id}"
+    params << "MNT_TRANSACTION_ID=#{order.number}"
     params << "MNT_CURRENCY_CODE=#{options[:currency_code]}"
     params << "MNT_AMOUNT=#{format("%.2f", order.total)}"
     params << "MNT_TEST_MODE=#{mode}"

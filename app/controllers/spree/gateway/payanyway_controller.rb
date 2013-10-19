@@ -48,7 +48,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   private
 
   def load_order
-    @order = Spree::Order.find_by_id(params['MNT_TRANSACTION_ID'])
+    @order = Spree::Order.find_by_number(params['MNT_TRANSACTION_ID'])
     @gateway = Spree::PaymentMethod.available.detect{ |pm| pm.kind_of? Spree::Gateway::Payanyway }
   end
   
