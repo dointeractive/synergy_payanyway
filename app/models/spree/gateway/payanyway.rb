@@ -33,11 +33,27 @@ class Spree::Gateway::Payanyway < Spree::Gateway
     false
   end
 
-  def signature(order)
+  def pay_signature(order)
     Digest::MD5.hexdigest([
         options[:id],
         order.number,
         format("%.2f", order.total),
+        options[:currency_code],
+        mode,
+        options[:signature]
+      ].join)
+  end
+
+  def result_signature(order, opt = {})
+    # allow using amount returned from moneta 
+    # so that payment will be saved in PayanywayController#result even if order's contents has been changed somehow
+    amount = opt['MNT_AMOUNT'].presence || order.total
+    operation_id = opt['MNT_OPERATION_ID']
+    Digest::MD5.hexdigest([
+        options[:id],
+        order.number,
+        operation_id,
+        format("%.2f", amount),
         options[:currency_code],
         mode,
         options[:signature]
@@ -51,7 +67,7 @@ class Spree::Gateway::Payanyway < Spree::Gateway
     params << "MNT_CURRENCY_CODE=#{options[:currency_code]}"
     params << "MNT_AMOUNT=#{format("%.2f", order.total)}"
     params << "MNT_TEST_MODE=#{mode}"
-    params << "MNT_SIGNATURE=#{signature(order)}"
+    params << "MNT_SIGNATURE=#{pay_signature(order)}"
     params << "moneta.locale=#{options[:locale]}" if options[:locale].present?
     params << "paymentSystem.unitId=#{opt[:payment_system].presence || options[:payment_system]}" if opt[:payment_system].present? || options[:payment_system].present?
     params << "paymentSystem.limitIds=#{options[:payment_system_list]}" if options[:payment_system_list].present?
