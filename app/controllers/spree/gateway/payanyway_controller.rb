@@ -16,7 +16,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   # end
 
   def result
-    if complete_or_create_payment(@order, @gateway) && complete_order(@order)
+    if complete_or_create_payment(@order, @gateway, params) && complete_order(@order)
       render :text => 'SUCCESS'
     else
       render :text => 'FAIL'
@@ -51,13 +51,13 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
     @gateway = Spree::PaymentMethod.available.detect{ |pm| pm.kind_of? Spree::Gateway::Payanyway }
   end
   
-  def complete_or_create_payment(order, gateway)
+  def complete_or_create_payment(order, gateway, api_params)
     return unless order && gateway
-    unless (payment = order.payments.last) && payment.complete!
+    unless (payment = order.payments.detect{ |p| p.payment_method == @gateway }) && payment.complete!
       order.payments.destroy_all
       order.payments.create! do |p|
         p.payment_method = gateway
-        p.amount = order.total
+        p.amount = api_params['MNT_AMOUNT'].to_f
         p.state = 'completed'
       end
     end
