@@ -34,8 +34,9 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   end
 
   def fail
-    flash[:error] = Spree.t(:payment_fail)
-    redirect_to @order.blank? ? account_orders_url : checkout_state_url('payment')
+    # flash[:error] = Spree.t(:payment_fail)
+    # redirect_to @order.blank? ? account_orders_url : checkout_state_url('payment')
+    redirect_to root_url
   end
 
   private
