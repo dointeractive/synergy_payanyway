@@ -2,6 +2,7 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   skip_before_filter :verify_authenticity_token, :only => [:result, :success, :fail]
 
   before_filter :load_order, :only => [:result, :success, :fail]
+  before_filter :check_signature, only: :result
 
   # def show
   #   @order =  Spree::Order.find(params[:order_id])
@@ -16,15 +17,15 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   # end
 
   def result
-    if @order && @gateway.result_signature(@order, params) == params['MNT_SIGNATURE'] && complete_or_create_payment(@order, @gateway, params) && complete_order(@order)
-      render :text => 'SUCCESS'
+    if complete_or_create_payment(@order, @gateway, params) and complete_order
+      render text: 'SUCCESS'
     else
-      render :text => 'FAIL'
+      render text: 'FAIL'
     end
   end
 
   def success
-    if @order && complete_order(@order)
+    if @order.complete?
       session[:order_id] = nil
       redirect_to account_orders_url, :notice => Spree.t(:order_processed_successfully)
     else
@@ -44,8 +45,16 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
   def load_order
     @order = Spree::Order.find_by_number(params['MNT_TRANSACTION_ID'])
     @gateway = Spree::PaymentMethod.available.detect{ |pm| pm.kind_of? Spree::Gateway::Payanyway }
+
+    render(text: 'FAIL') unless @order and @gateway
   end
   
+  def check_signature
+    unless @gateway.result_signature(@order, params) == params['MNT_SIGNATURE']
+      render text: 'FAIL'
+    end
+  end
+
   def complete_or_create_payment(order, gateway, api_params)
     return unless order && gateway
     amount = api_params['MNT_AMOUNT'].to_f
@@ -58,11 +67,9 @@ class Spree::Gateway::PayanywayController < Spree::StoreController
     payment.complete && order.update!
   end
 
-  def complete_order(order)
-    unless order.complete?
-      order.next! until order.state == 'complete'
-    end
-    order.complete?
+  def complete_order
+    @order.next! until @order.state == 'complete'
+    @order.update!
+    @order.complete?
   end
-
 end
